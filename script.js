@@ -1,153 +1,160 @@
-// elements
-// const screen = document.getElementById('main-box');
-const no_alarm_msg = document.getElementById('current-timers');
-const audioElement = document.getElementById('alarm-tone');
-audioElement.style.display = 'none';
-// buttons
-const set_alarm_btn = document.getElementById('set-btn');
-
-const timers = [];
-let seconds; // Initial time in seconds
-let alarms = 0;
-
-
-// 1st functionality - display all timers
-
-set_alarm_btn.addEventListener('click', (event) => {
-    // alarm inputs
-    let hours = parseInt(document.getElementById('hour').textContent);
-    let min = parseInt(document.getElementById('min').textContent);
-    let sec = parseInt(document.getElementById('sec').textContent);
-    // console.log(hours);
-    // console.log(min);
-    // console.log(sec);
-
-    // convert hours, min, sec ---> seconds
-    seconds = hours * 60 * 60 + min * 60 + sec;
-    // console.log(seconds);
-    event.preventDefault();
-    console.log('set btn hit');
-    ifValidTimer(event, min, sec);
-});
-
-    function ifValidTimer(event, min, sec) {
-        console.log('if valid timer func run');
-        // startCountdown();
-
-        if (min >= 0 && min < 60 && sec >= 0 && sec < 60) {
-            // valid time
-            // console.log(event);
-            // Call this function to start the countdown
-            // startCountdown();
-            timers.push({name:timers.length + 1, duration: seconds});
-            console.log(timers);
-            initializeTimers(timers[timers.length - 1]);
-        }
-        else alert('Please enter valid time!!!! ex -> 00:00:05');
-}
-
-const timersList = document.getElementById('timers-list');
-function initializeTimers(timer) {
-    // timersList.innerHTML = '';
-
-        var alarmBox = document.createElement('div');
-        alarmBox.setAttribute('id', timer.name);
-        alarmBox.className = 'timer-div';
-
-        alarmBox.innerHTML = `
-        `;
-    
-        timersList.appendChild(alarmBox);
-        handleTimer(timer);
-
-        alarms++;
-}
+hourField = document.getElementById('hour-input');
+minuteField = document.getElementById('minute-input');
+secondField = document.getElementById('second-input');
+let count = 1;
+let timerList = [];
 
 
 
-// 2nd functionality - stop timer
-
-
-function updateTimerDisplay(timer) {
-    if (document.getElementById(timer.name)) {
-        const timerElement = document.getElementById(timer.name);
-        timerElement.innerHTML = `
-        <div class="display-flex-row-center gap-2rem timer-box">
-        <p id="set-time">Time Left  :</p>
-        <div id="time-count-active" class="display-flex-row-center">
-            <p id="hour">${Math.floor(timer.duration / 3600).toString().padStart(2, '0')}</p>
-            <p>:</p>
-            <p id="min">${Math.floor((timer.duration % 3600) / 60).toString().padStart(2, '0')}</p>
-            <p>:</p>
-            <p id="sec">${Math.floor(timer.duration % 60).toString().padStart(2, '0')}</p>
-        </div>
-        <div id="set-btn" onClick="deleteAlarm(${timer.name})">Delete</div>
-    </div>
-        `;
+document.getElementById('set-button').addEventListener('click',(event)=>{
+    hour = hourField.value;
+    minute = minuteField.value;
+    second = secondField.value;
+    if(minute<=60 && second<=60){
+        minuteField.style.borderColor = '#35f8b7';
+        secondField.style.borderColor = '#35f8b7';
+        console.log('test')
+        createTimer(hour,minute,second);
     }
+    else if(minute>60){
+        minuteField.style.borderColor = 'red';
+        alert("Enter valid value for minutes");
+    }
+    else if(second>60){
+        secondField.style.borderColor = 'red';
+        alert("Enter valid value for seconds");
+    }
+})
+
+function createTimer(hour,minute,second){
+    activeTimers = document.getElementById('active-timers');
+    if(timerList.length===0){
+        activeTimers.innerText = '';
+    }
+    timer = document.createElement('div');
+    timer.innerHTML =  `<p>Time Left:</p>
+                        <div class="time">
+                            <input type="number" class="hour" id="hour" value = "${hour}">
+                            <p>:</p>
+                            <input type="number" class="minute" id="minute" value = "${minute}">
+                            <p>:</p>
+                            <input type="number" class="second" id="second" value = "${second}">
+                        </div>
+                        <button class="set-button" id="deletetimer${count}">Delete</button>`;
+    timer.className = 'set-timer';
+    timer.id = 'timer'+count;
+    count++;
+    activeTimers.appendChild(timer);
+    const myInterval = setInterval(startTimer,1000,timer);
+    let obj = {};
+    obj[timer.id] = myInterval;
+    timerList.push(obj);
     
 }
 
-function handleTimer(timer) {
-    updateTimerDisplay(timer);
-    timer.interval = setInterval(function() {
-        timer.duration--;
-        updateTimerDisplay(timer);
-        if (timer.duration <= 0) {
-            clearInterval(timer.interval);
-            // alert(timer.alarmMessage);
-            if (document.getElementById(timer.name)) {
-                const timerElement = document.getElementById(timer.name);
-                timerElement.className = 'timer-div-finished';
-                timerElement.innerHTML = `
-                <div class="display-flex-row-center gap-2rem timer-box-finished">
-                <p id="set-time-finished">Set Time :</p>
-                <div id="time-count-finished" class="display-flex-row-center">
-                    <p>Timer is Up!</p>
-                </div>
-                <div id="set-btn-finished" onClick="deleteAlarm(${timer.name})">Stop</div>
-            </div>
-                `;
+function startTimer(timer){
+    
+    hourQuery = '#'+timer.id+' '+'#hour';
+    hourElement = document.querySelector(hourQuery);
+    minuteQuery = '#'+timer.id+' '+'#minute';
+    minuteElement = document.querySelector(minuteQuery);
+    secondQuery = '#'+timer.id+' '+'#second';
+    secondElement = document.querySelector(secondQuery);
+    hour = parseInt(hourElement.value);
+    minute = parseInt(minuteElement.value);
+    second = parseInt(secondElement.value)
 
-                playMusic();
+    
+    
+
+    if(minute===0 && hour===0 && second===0){
+        stopTimer(timer.id);
+    }
+    else{
+        if(hour>0 && minute===0){
+            minute = 59;
+            hour--;
+        }
+        
+    
+        if(second===0){
+            second = 59;
+            minute--;
+        }
+        else{
+            second--;
+        }
+    
+        if(hour<10){
+            hourElement.value = '0'+hour;
+        }
+        else{
+            hourElement.value = hour;
+        }
+    
+        if(minute<10){
+            minuteElement.value = '0'+minute;
+        }
+        else{
+            minuteElement.value = minute;
+        }
+    
+        if(second<10){
+            secondElement.value = '0'+second;
+        }
+        else{
+            secondElement.value = second;
+        }       
+    }
+    console.log('delete'+timer.id)
+    document.getElementById('delete'+timer.id).addEventListener('click',(event)=>{
+        let obj;
+        
+        for(let i of timerList){
+            if(i[timer.id]!==undefined){
+                obj = i;
             }
         }
-    }, 1000);
+        console.log(timer.id);
+        myInterval = obj[timer.id];
+        clearInterval(myInterval);
+        
+        timer.remove();
+        timerList.splice(timerList.indexOf(obj),1);
+        if(timerList.length===0){
+            document.getElementById('active-timers').innerText = 'No Active Timers';
+        }
+        
+    })
 }
 
-function deleteAlarm(elementId) {
-    // console.log(event.target);
-    timersList.removeChild(document.getElementById(`${elementId}`));
-    timers.splice(elementId - 1, 1);
-    alarms--;
-    console.log(alarms);
-    stopMusic();
-}
-
-
-
-function noAlarmOnScreen() {
+function stopTimer(timerId){
+    let obj;
+    for(let i of timerList){
+        if(i[timerId]!==undefined){
+            obj = i;
+        }
+    }
+    myInterval = obj[timerId];
+    clearInterval(myInterval);
     
-    // display message
-    if (alarms === 0) {
-        no_alarm_msg.style.display = 'block';
-        console.log('tst');
-    }
-    else {
-        no_alarm_msg.style.display = 'none';
-    }
+
+    var audio = new Audio('Music/Relaxed.mp3');
+    audio.play();
+    timer = document.getElementById(timerId);
+    console.log("to comare",timerId)
+    timer.innerHTML = `<p></p>
+                        <div class="time" style="font-size: 45px;">
+                            Time us Up!
+                        </div>
+                        <button class="set-button" id="stop${timerId}">Stop</button>`;
+    document.getElementById('stop'+timerId).addEventListener('click',(event)=>{
+        console.log("this is", timerId)
+        timer.remove();
+        audio.pause();
+        timerList.splice(timerList.indexOf(obj),1);
+        if(timerList.length===0){
+            document.getElementById('active-timers').innerText = 'No Active Timers';
+        }
+    })
 }
-
-
-function playMusic() {
-    console.log('music played');
-    audioElement.play();
-}
-
-function stopMusic() {
-    console.log('music stopd');
-    audioElement.pause();
-    audioElement.currentTime = 0;
-}
-
-setInterval(noAlarmOnScreen, 100);
